@@ -68,5 +68,35 @@ $.ajax({
   }
 });
 
+let borderLayer;   // keep a reference so we can remove/replace it
+
+$('#countryDropdown').on('change', function () {
+  const code = $(this).val();          // e.g. "ES"
+  if (!code) return;
+
+  $.ajax({
+    url: 'php/getCountryBorder.php',
+    method: 'POST',
+    data: { code },
+    dataType: 'json',
+    success: function (feature) {
+      // remove previous border if it exists
+      if (borderLayer) map.removeLayer(borderLayer);
+
+      // draw new border
+      borderLayer = L.geoJSON(feature, {
+        style: { color: 'red', weight: 2 }
+      }).addTo(map);
+
+      // zoom so the whole country fits
+      map.fitBounds(borderLayer.getBounds());
+    },
+    error: function () {
+      console.error('Could not load border for', code);
+    }
+  });
+});
+
+
 
 });
