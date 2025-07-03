@@ -1,12 +1,48 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // 1. Create the map and keep in variable
+  const map = L.map('map');         
 
-// 1. Create the map and set the initial view
-const map = L.map('map').setView([42.8782, -8.5448], 14); 
+  // 2. Add a tile layer 
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
 
-// 2. Add a tile layer (base map) from OpenStreetMap
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© OpenStreetMap contributors'
-}).addTo(map);
+  
+navigator.geolocation.getCurrentPosition(
+  function (position) {
+    const lat = position.coords.latitude;
+    const lng = position.coords.longitude;
+    console.log('User location:', lat, lng);
+
+    // Optional: marker to show user location
+    L.marker([lat, lng]).addTo(map).bindPopup('You are here').openPopup();
+
+     // Zoom the map here (just to confirm if map works at all)
+    map.setView([lat, lng], 6);
+
+    // Call PHP to convert lat/lng → country code
+    $.ajax({
+      url: 'php/getCountryFromCoords.php',
+      method: 'POST',
+      data: { lat: lat, lng: lng },
+      dataType: 'json',
+      success: function (response) {
+        const countryCode = response.countryCode;
+        console.log('User is in country:', countryCode);
+
+        // Set dropdown value and trigger change event
+        $('#countryDropdown').val(countryCode).trigger('change');
+      },
+      error: function (xhr, status, err) {
+        console.error('Could not determine country from location:', err);
+      }
+    });
+  },
+  function (error) {
+    console.error('Geolocation error:', error);
+  }
+);
+
 
 
 document.getElementById('loader').style.display = 'none';
