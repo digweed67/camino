@@ -102,6 +102,7 @@ $.ajax({
 // ------------ Change map when the selected country changes 
 
 let borderLayer;   // keep a reference so we can remove/replace it
+let cityClusterLayer = null; 
 
 $('#countryDropdown').on('change', function () {
   const code = $(this).val();          // e.g. "ES"
@@ -123,6 +124,7 @@ $('#countryDropdown').on('change', function () {
 
       // zoom so the whole country fits
       map.fitBounds(borderLayer.getBounds());
+      fetchCities(code);
     },
     error: function () {
       console.error('Could not load border for', code);
@@ -139,6 +141,10 @@ $.ajax({
   data: { countryCode }, 
   dataType: 'json',
   success: function (response) {
+    if (cityClusterLayer) {
+      map.removeLayer(cityClusterLayer);
+      cityClusterLayer = null;
+    }
     const cities = response.geonames;
     const clusters = L.markerClusterGroup();
 
@@ -153,6 +159,7 @@ $.ajax({
       
     });
   map.addLayer(clusters)
+  cityClusterLayer = clusters;
   },
   error: function (xhr, status, err) {
     console.error('Could not load cities:', err);
