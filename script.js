@@ -33,6 +33,8 @@ navigator.geolocation.getCurrentPosition(
 
         // Set dropdown value and trigger change event
         $('#countryDropdown').val(countryCode).trigger('change');
+        
+        fetchCities(countryCode);
       },
       error: function (xhr, status, err) {
         console.error('Could not determine country from location:', err);
@@ -60,6 +62,9 @@ navigator.geolocation.getCurrentPosition(
 
         // Set dropdown value and trigger change event
         $('#countryDropdown').val(countryCode).trigger('change');
+
+        fetchCities(countryCode);
+
       },
       error: function (xhr, status, err) {
         console.error('Could not determine country from fallback coords:', err);
@@ -126,5 +131,36 @@ $('#countryDropdown').on('change', function () {
 });
 
 
+// ------------ Make a request to getCities and add cities to map
+function fetchCities(countryCode){
+$.ajax({
+  url: 'php/getCities.php',
+  method: 'POST',
+  data: { countryCode }, 
+  dataType: 'json',
+  success: function (response) {
+    const cities = response.geonames;
+    const clusters = L.markerClusterGroup();
+
+    cities.forEach(city => {
+      const lat = parseFloat(city.lat);
+      const lng = parseFloat(city.lng);
+      const name = city.toponymName || city.name; 
+
+      const marker = L.marker([lat, lng]).bindPopup(name);
+      clusters.addLayer(marker)
+      
+      
+    });
+  map.addLayer(clusters)
+  },
+  error: function (xhr, status, err) {
+    console.error('Could not load cities:', err);
+  }
 
 });
+};
+
+
+
+}); //DOM closing tags 
