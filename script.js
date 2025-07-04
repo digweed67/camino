@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+// ------------ Show the map 
   // 1. Create the map and keep in variable
   const map = L.map('map');         
 
@@ -7,17 +8,17 @@ document.addEventListener('DOMContentLoaded', () => {
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
 
-  
+// ------------ Get current position of user and fallback if no location access
 navigator.geolocation.getCurrentPosition(
   function (position) {
     const lat = position.coords.latitude;
     const lng = position.coords.longitude;
     console.log('User location:', lat, lng);
 
-    // Optional: marker to show user location
+    // Marker to show user location
     L.marker([lat, lng]).addTo(map).bindPopup('You are here').openPopup();
 
-     // Zoom the map here (just to confirm if map works at all)
+     // Zoom the map 
     map.setView([lat, lng], 6);
 
     // Call PHP to convert lat/lng → country code
@@ -40,13 +41,37 @@ navigator.geolocation.getCurrentPosition(
   },
   function (error) {
     console.error('Geolocation error:', error);
+
+    const lat = 40.0;
+    const lng = -3.7;
+
+    L.marker([lat, lng]).addTo(map).bindPopup('Default location (Spain)').openPopup();
+
+    map.setView([lat, lng], 6);
+
+    $.ajax({
+      url: 'php/getCountryFromCoords.php',
+      method: 'POST',
+      data: { lat: lat, lng: lng },
+      dataType: 'json',
+      success: function (response) {
+        const countryCode = response.countryCode;
+        console.log('Fallback country:', countryCode);
+
+        // Set dropdown value and trigger change event
+        $('#countryDropdown').val(countryCode).trigger('change');
+      },
+      error: function (xhr, status, err) {
+        console.error('Could not determine country from fallback coords:', err);
+      }
+    });
   }
 );
 
 
 
 document.getElementById('loader').style.display = 'none';
-
+// ------------ Populate dropdown 
 // 1. Grab the dropdown element 
 const dropdown = document.getElementById('countryDropdown');
 
@@ -67,6 +92,9 @@ $.ajax({
     console.error('Could not load countries:', err);
   }
 });
+
+
+// ------------ Change map when the selected country changes 
 
 let borderLayer;   // keep a reference so we can remove/replace it
 
