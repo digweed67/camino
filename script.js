@@ -151,11 +151,13 @@ $.ajax({
     cities.forEach(city => {
       const lat = parseFloat(city.lat);
       const lng = parseFloat(city.lng);
-      const name = city.toponymName || city.name; 
+      const cityName = city.toponymName || city.name; 
 
-      const marker = L.marker([lat, lng]).bindPopup(name);
+      const marker = L.marker([lat, lng]).bindPopup(cityName);
       clusters.addLayer(marker)
       
+      // When the user clicks the marker ➜ open the modal
+    marker.on('click', () => loadCityInfo({ lat, lng, name: cityName }));
       
     });
   map.addLayer(clusters)
@@ -167,6 +169,35 @@ $.ajax({
 
 });
 };
+
+function loadCityInfo({ lat, lng, name }) {
+  // Open the modal immediately with a placeholder
+  $('#cityModalLabel').text(`Loading ${name}…`);
+  $('#cityModalBody').html('<em>Fetching data…</em>');
+  new bootstrap.Modal(document.getElementById('cityModal')).show();
+
+  // AJAX call to PHP
+  $.ajax({
+    url: 'php/getCityInfo.php',
+    method: 'POST',
+    data: { lat, lng },
+    dataType: 'json',
+    success: function (data) {
+      if (data.status === 'error') {
+        $('#cityModalBody').html(`<strong>${data.message}</strong>`);
+        return;
+      }
+      $('#cityModalLabel').text(data.name);
+      $('#cityModalBody').html(`
+        <ul class="list-unstyled mb-0">
+          <li><strong>Country Code:</strong> ${data.code}</li>
+          <li><strong>Population:</strong> ${Number(data.population).toLocaleString()}</li>
+        </ul>
+      `);
+    },
+    error: () => $('#cityModalBody').html('<strong>Server error—try again.</strong>')
+  });
+}
 
 
 
