@@ -13,7 +13,7 @@ navigator.geolocation.getCurrentPosition(
   function (position) {
     const lat = position.coords.latitude;
     const lng = position.coords.longitude;
-    console.log('User location:', lat, lng);
+    
 
     // Marker to show user location
     L.marker([lat, lng]).addTo(map).bindPopup('You are here').openPopup();
@@ -29,7 +29,7 @@ navigator.geolocation.getCurrentPosition(
       dataType: 'json',
       success: function (response) {
         const countryCode = response.countryCode;
-        console.log('User is in country:', countryCode);
+        
 
         // Set dropdown value and trigger change event
         $('#countryDropdown').val(countryCode).trigger('change');
