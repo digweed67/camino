@@ -7,6 +7,7 @@ $lng = $_POST['lng'] ?? '';
 
 
 if (!($lat) || !($lng)) {
+    http_response_code(400); 
     echo json_encode(['status' => 'error', 'message' => 'Missing coordinates']);
     exit;
 }
@@ -20,11 +21,20 @@ $curl = curl_init();
 
 curl_setopt_array($curl, [
     CURLOPT_URL => $url,
-    CURLOPT_RETURNTRANSFER => true
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_TIMEOUT => 8,
 ]);
 
 // 4. Execute cURL and close it
 $response = curl_exec($curl);
+if($response === false){
+    http_response_code(500);
+    $err = curl_error($curl);
+    curl_close($curl);
+    echo json_encode(['status'=>'error','message'=>$err]);
+    exit;
+
+}
 curl_close($curl);
 
 // 5. Decode the JSON response
@@ -33,6 +43,7 @@ $city = $data['geonames'][0] ?? null;
 
 // 6. check if response is valid 
 if (!$city) {
+    http_response_code(404);
     echo json_encode(['status' => 'error', 'message' => 'City not found']);
     exit;
 }
