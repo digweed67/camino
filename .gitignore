@@ -1,1 +1,6 @@
+# Sensitive config
 php/config.php
+
+# Node or IDE junk (if applicable)
+node_modules/
+.DS_Store
