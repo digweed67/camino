@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
+//create modal for cities 
+const cityModalEl = document.getElementById('cityModal');
+const cityModal   = bootstrap.Modal.getOrCreateInstance(cityModalEl);
 // ------------ Show the map 
   // 1. Create the map and keep in variable
   const map = L.map('map');         
@@ -58,7 +61,7 @@ navigator.geolocation.getCurrentPosition(
       dataType: 'json',
       success: function (response) {
         const countryCode = response.countryCode;
-        console.log('Fallback country:', countryCode);
+        
 
         // Set dropdown value and trigger change event
         $('#countryDropdown').val(countryCode).trigger('change');
@@ -73,9 +76,10 @@ navigator.geolocation.getCurrentPosition(
   }
 );
 
+// Hide loader after map is fully ready 
+map.whenReady(() => document.getElementById('loader').style.display = 'none');
 
 
-document.getElementById('loader').style.display = 'none';
 // ------------ Populate dropdown 
 // 1. Grab the dropdown element 
 const dropdown = document.getElementById('countryDropdown');
@@ -174,7 +178,7 @@ function loadCityInfo({ lat, lng, name }) {
   // Open the modal immediately with a placeholder
   $('#cityModalLabel').text(`Loading ${name}…`);
   $('#cityModalBody').html('<em>Fetching data…</em>');
-  new bootstrap.Modal(document.getElementById('cityModal')).show();
+  cityModal.show();
 
   // AJAX call to PHP
   $.ajax({
