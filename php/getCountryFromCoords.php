@@ -10,7 +10,9 @@ if (!$lat || !$lng) {
     exit;
 }
 
-$apiKey = '8e9bb7715e604f6a968c9f4a2d7d7b4a'; 
+require_once 'config.php';
+$apiKey = OPENCAGE_API_KEY;
+
 
 $url = "https://api.opencagedata.com/geocode/v1/json?q={$lat}+{$lng}&key={$apiKey}";
 
