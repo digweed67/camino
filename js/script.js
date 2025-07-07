@@ -1,3 +1,7 @@
+import { fetchCityInfo, fetchWeather } from './api.js';
+
+
+
 document.addEventListener('DOMContentLoaded', () => {
 //create modal for cities 
 const cityModalEl = document.getElementById('cityModal');
@@ -174,26 +178,23 @@ $.ajax({
 });
 };
 
+// ------------ Open a modal with the city info and weather info
+
 function loadCityInfo({ lat, lng, name }) {
   // Show modal immediately with a placeholder
   $('#cityModalLabel').text(`Loading ${name}…`);
   $('#cityModalBody').html('<em>Fetching data…</em>');
   cityModal.show();
 
-  // First AJAX: get city info
-  $.ajax({
-    url: 'php/getCityInfo.php',
-    method: 'POST',
-    data: { lat, lng },
-    dataType: 'json',
-    success: function (cityData) {
+  fetchCityInfo(lat, lng).then(function(cityData) {
+    
       if (cityData.status === 'error') {
         $('#cityModalBody').html(`<strong>${cityData.message}</strong>`);
         return;
-      }
+      } 
 
-      // Build city-info HTML
       $('#cityModalLabel').text(cityData.name);
+      
       let cityHTML = `
         <ul class="list-unstyled mb-2">
           <li><strong>Country Code:</strong> ${cityData.code}</li>
@@ -201,15 +202,8 @@ function loadCityInfo({ lat, lng, name }) {
         </ul>
       `;
 
-      // Nested AJAX: get weather info for the same coords
-      $.ajax({
-        url: 'php/getWeather.php',
-        method: 'POST',
-        data: { lat, lon: lng },
-        dataType: 'json',
-        success: function (weatherData) {
-          // Build weather HTML (or fallback message)
-          let weatherHTML =
+      fetchWeather(lat, lng).then(function(weatherData) {
+        let weatherHTML =
             weatherData.status === 'ok'
               ? `
                 <hr>
@@ -221,17 +215,15 @@ function loadCityInfo({ lat, lng, name }) {
               `
               : '<p><em>Weather unavailable.</em></p>';
 
-          // Combine and show both pieces
           $('#cityModalBody').html(cityHTML + weatherHTML);
-        },
-        error: () => $('#cityModalBody').html(cityHTML + '<p><em>Weather unavailable.</em></p>')
+      }).catch(function () {
+        $('#cityModalBody').html(cityHTML + '<p><em>Weather unavailable.</em></p>');
       });
-    },
-    error: () => $('#cityModalBody').html('<strong>Server error—try again.</strong>')
+  }).catch(function () {
+    $('#cityModalBody').html('<strong>Server error—try again.</strong>');
   });
-};
 
-
-
+   
+}  // ← this was missing
 
 }); //DOM closing tags 
