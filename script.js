@@ -175,33 +175,62 @@ $.ajax({
 };
 
 function loadCityInfo({ lat, lng, name }) {
-  // Open the modal immediately with a placeholder
+  // Show modal immediately with a placeholder
   $('#cityModalLabel').text(`Loading ${name}…`);
   $('#cityModalBody').html('<em>Fetching data…</em>');
   cityModal.show();
 
-  // AJAX call to PHP
+  // First AJAX: get city info
   $.ajax({
     url: 'php/getCityInfo.php',
     method: 'POST',
     data: { lat, lng },
     dataType: 'json',
-    success: function (data) {
-      if (data.status === 'error') {
-        $('#cityModalBody').html(`<strong>${data.message}</strong>`);
+    success: function (cityData) {
+      if (cityData.status === 'error') {
+        $('#cityModalBody').html(`<strong>${cityData.message}</strong>`);
         return;
       }
-      $('#cityModalLabel').text(data.name);
-      $('#cityModalBody').html(`
-        <ul class="list-unstyled mb-0">
-          <li><strong>Country Code:</strong> ${data.code}</li>
-          <li><strong>Population:</strong> ${Number(data.population).toLocaleString()}</li>
+
+      // Build city-info HTML
+      $('#cityModalLabel').text(cityData.name);
+      let cityHTML = `
+        <ul class="list-unstyled mb-2">
+          <li><strong>Country Code:</strong> ${cityData.code}</li>
+          <li><strong>Population:</strong> ${Number(cityData.population).toLocaleString()}</li>
         </ul>
-      `);
+      `;
+
+      // Nested AJAX: get weather info for the same coords
+      $.ajax({
+        url: 'php/getWeather.php',
+        method: 'POST',
+        data: { lat, lon: lng },
+        dataType: 'json',
+        success: function (weatherData) {
+          // Build weather HTML (or fallback message)
+          let weatherHTML =
+            weatherData.status === 'ok'
+              ? `
+                <hr>
+                <div class="weather">
+                  <img src="https://openweathermap.org/img/wn/${weatherData.icon}@2x.png" alt="weather icon">
+                  <div><strong>${(+weatherData.temp).toFixed(1)} °C</strong></div>
+                  <div>${weatherData.weather}</div>
+                </div>
+              `
+              : '<p><em>Weather unavailable.</em></p>';
+
+          // Combine and show both pieces
+          $('#cityModalBody').html(cityHTML + weatherHTML);
+        },
+        error: () => $('#cityModalBody').html(cityHTML + '<p><em>Weather unavailable.</em></p>')
+      });
     },
     error: () => $('#cityModalBody').html('<strong>Server error—try again.</strong>')
   });
-}
+};
+
 
 
 
