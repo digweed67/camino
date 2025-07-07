@@ -157,7 +157,7 @@ $.ajax({
       const lng = parseFloat(city.lng);
       const cityName = city.toponymName || city.name; 
 
-      const marker = L.marker([lat, lng]).bindPopup(cityName);
+      const marker = L.marker([lat, lng]);
       clusters.addLayer(marker)
       
       // When the user clicks the marker ➜ open the modal
