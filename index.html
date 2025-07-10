@@ -15,9 +15,22 @@
 </head>
 
 <body>
-  <select id="countryDropdown">
-    <option value="">Select a country</option>
-  </select>
+  <!-- Dropdown menu -->
+  <div class="d-flex justify-content-center">
+    <div class="row align-items-center my-3">
+    <div class="col-12 col-sm-auto text-center text-sm-end mb-2 mb-sm-0">
+      <label for="countryDropdown" class="fw-semibold">Choose a Country</label>
+    </div>
+    <div class="col-12 col-sm-auto text-center text-sm-start">
+      <select id="countryDropdown" class="form-select w-auto">
+        <option value="">Select a country</option>
+      </select>
+    </div>
+  </div>
+  </div>
+
+
+
 
 
   <!-- Loader Spinner -->
@@ -28,7 +41,14 @@
   </div>
 
 
-  <div id="map"></div>
+  <!-- Map with px-2 side padding and w-100 for taking 100w of container -->
+  <div class="d-flex justify-content-center my-3 px-2">
+    <div id="map" class="rounded shadow w-100"></div>
+  </div>
+
+
+  
+
 
   <!-- City Info Modal -->
   <div class="modal fade" id="cityModal" tabindex="-1" aria-labelledby="cityModalLabel" aria-hidden="true">
@@ -45,7 +65,11 @@
     </div>
   </div>
 
-
+  <!-- Footer -->
+  <footer class="text-center text-muted py-4">
+    <small>© 2025 World Explorer — Built with Bootstrap, Leaflet & Open APIs</small>
+  </footer>
+  
   <!-- JS -->
   <script src="lib/leaflet/leaflet.js"></script>
   <script src="lib/markercluster/leaflet.markercluster.js"></script>

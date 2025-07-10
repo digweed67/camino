@@ -2,11 +2,18 @@ body, html {
   margin: 0;
   padding: 0;
   height: 100%;
+  
 }
 
+
+
 #map {
-  width: 50%;
-  height: 50%;
+  width: 80%;
+  height: 80vh;
+  max-width: 1000px;
+  border-radius: 0.5rem;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  
 }
 
 #loader {
