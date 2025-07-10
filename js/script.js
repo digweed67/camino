@@ -81,7 +81,14 @@ navigator.geolocation.getCurrentPosition(
 );
 
 // Hide loader after map is fully ready 
-map.whenReady(() => document.getElementById('loader').style.display = 'none');
+map.whenReady(() => {
+  const loader = document.getElementById('loader');
+  if (loader) {
+    loader.style.opacity = '0';
+    setTimeout(() => loader.remove(), 500); // removes it smoothly after fading out
+  }
+});
+
 
 
 // ------------ Populate dropdown 
