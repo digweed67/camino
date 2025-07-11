@@ -1,4 +1,4 @@
-import { fetchCityInfo, fetchWeather, fetchCountry, fetchCountryList, fetchCountryBorder, fetchCities } from './api.js';
+import { fetchCityInfo, fetchWeather, fetchCountry, fetchCountryList, fetchCountryBorder, fetchCities, fetchWikipedia } from './api.js';
 
 
 
@@ -199,6 +199,27 @@ function loadCityInfo({ lat, lng, name }) {
       }).catch(function () {
         $('#cityModalBody').html(cityHTML + '<p><em>Weather unavailable.</em></p>');
       });
+
+        fetchWikipedia(name)
+          .then(function(wikiData) {
+            if (wikiData.status === 'ok') {
+              const wikiHTML = `
+                <hr>
+                <div class="wikipedia">
+                  <strong>Wikipedia:</strong>
+                  <p>${wikiData.summary}</p>
+                  <a href="https://en.wikipedia.org/wiki/${encodeURIComponent(name)}" target="_blank">Read more</a>
+                </div>
+              `;
+              $('#cityModalBody').append(wikiHTML);
+            } else {
+              $('#cityModalBody').append('<p><em>No Wikipedia summary available.</em></p>');
+            }
+          })
+          .catch(() => {
+            $('#cityModalBody').append('<p><em>Wikipedia info unavailable.</em></p>');
+          });
+
   }).catch(function () {
     $('#cityModalBody').html('<strong>Server error—try again.</strong>');
   });

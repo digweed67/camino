@@ -78,3 +78,17 @@ export function fetchCities (countryCode) {
     });
   });
 }
+
+
+export function fetchWikipedia(name) {
+  return new Promise((resolve, reject) => {
+    $.ajax({
+      url: 'php/getWikipediaSummary.php',
+      method: 'POST',
+      data: { name },
+      dataType: 'json',
+      success: resolve,
+      error: reject
+    });
+  });
+}
