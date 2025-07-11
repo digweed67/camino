@@ -86,12 +86,14 @@ const dropdown = document.getElementById('countryDropdown');
 // 2. Ask the server for the country list 
 fetchCountryList()
   .then(function (list) {
-    list.forEach(function ({ code, name }) {
-      const option = document.createElement('option');
-      option.value = code;
-      option.textContent = name;
-      $('#countryDropdown').append(option);
-    });
+    list
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .forEach(function ({ code, name }) {
+        const option = document.createElement('option');
+        option.value = code;
+        option.textContent = name;
+        $('#countryDropdown').append(option);
+      });
   })
 
   .catch(err => console.error('Could not load countries:', err));
