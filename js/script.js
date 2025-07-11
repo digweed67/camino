@@ -1,4 +1,4 @@
-import { fetchCityInfo, fetchWeather, fetchCountry, fetchCountryList } from './api.js';
+import { fetchCityInfo, fetchWeather, fetchCountry, fetchCountryList, fetchCountryBorder, fetchCities } from './api.js';
 
 
 
@@ -37,7 +37,7 @@ navigator.geolocation.getCurrentPosition(
             // Set dropdown value and trigger change event
             $('#countryDropdown').val(countryCode).trigger('change');
             
-            fetchCities(countryCode);
+            getCities(countryCode);
           })
       .catch(err => console.error('Could not determine country from location:', err));
         
@@ -60,7 +60,7 @@ navigator.geolocation.getCurrentPosition(
           // Set dropdown value and trigger change event
           $('#countryDropdown').val(countryCode).trigger('change');
           
-          fetchCities(countryCode);
+          getCities(countryCode);
         })
     .catch(err => console.error('Could not determine country from location:', err));
       
@@ -107,12 +107,9 @@ $('#countryDropdown').on('change', function () {
   const code = $(this).val();          // e.g. "ES"
   if (!code) return;
 
-  $.ajax({
-    url: 'php/getCountryBorder.php',
-    method: 'POST',
-    data: { code },
-    dataType: 'json',
-    success: function (feature) {
+  
+fetchCountryBorder(code)
+  .then(function (feature) {
       // remove previous border if it exists
       if (borderLayer) map.removeLayer(borderLayer);
 
@@ -123,51 +120,42 @@ $('#countryDropdown').on('change', function () {
 
       // zoom so the whole country fits
       map.fitBounds(borderLayer.getBounds());
-      fetchCities(code);
-    },
-    error: function () {
-      console.error('Could not load border for', code);
-    }
-  });
+      getCities(code);
+    })
+
+  .catch(err => console.error('Could not load border for', code, err));
 });
 
 
 // ------------ Make a request to getCities and add cities to map
-function fetchCities(countryCode){
-$.ajax({
-  url: 'php/getCities.php',
-  method: 'POST',
-  data: { countryCode }, 
-  dataType: 'json',
-  success: function (response) {
-    if (cityClusterLayer) {
-      map.removeLayer(cityClusterLayer);
-      cityClusterLayer = null;
-    }
-    const cities = response.geonames;
-    const clusters = L.markerClusterGroup();
+function getCities(countryCode){
+  fetchCities(countryCode)
+    .then(function (response) {
+      if (cityClusterLayer) {
+        map.removeLayer(cityClusterLayer);
+        cityClusterLayer = null;
+      }
+      const cities = response.geonames;
+      const clusters = L.markerClusterGroup();
 
-    cities.forEach(city => {
-      const lat = parseFloat(city.lat);
-      const lng = parseFloat(city.lng);
-      const cityName = city.toponymName || city.name; 
+      cities.forEach(city => {
+        const lat = parseFloat(city.lat);
+        const lng = parseFloat(city.lng);
+        const cityName = city.toponymName || city.name; 
 
-      const marker = L.marker([lat, lng]);
-      clusters.addLayer(marker)
-      
-      // When the user clicks the marker ➜ open the modal
-    marker.on('click', () => loadCityInfo({ lat, lng, name: cityName }));
-      
-    });
-  map.addLayer(clusters)
-  map.fitBounds(clusters.getBounds());
-  cityClusterLayer = clusters;
-  },
-  error: function (xhr, status, err) {
-    console.error('Could not load cities:', err);
-  }
-
-});
+        const marker = L.marker([lat, lng]);
+        clusters.addLayer(marker)
+        
+        // When the user clicks the marker ➜ open the modal
+      marker.on('click', () => loadCityInfo({ lat, lng, name: cityName }));
+        
+      });
+    map.addLayer(clusters)
+    map.fitBounds(clusters.getBounds());
+    cityClusterLayer = clusters;
+    })
+    
+    .catch(err => console.error('Could not load cities:', err));
 };
 
 // ------------ Open a modal with the city info and weather info

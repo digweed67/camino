@@ -52,3 +52,29 @@ export function fetchCountryList () {
     });
   });
 }
+
+export function fetchCountryBorder (code) {  
+  return new Promise((resolve, reject) => {
+    $.ajax({
+    url: 'php/getCountryBorder.php',
+    method: 'POST',
+    data: { code },
+    dataType: 'json',
+    success: resolve,
+    error: reject
+    });
+  });
+}
+
+export function fetchCities (countryCode) {  
+  return new Promise((resolve, reject) => {
+    $.ajax({
+    url: 'php/getCities.php',
+    method: 'POST',
+    data: { countryCode },
+    dataType: 'json',
+    success: resolve,
+    error: reject
+    });
+  });
+}
