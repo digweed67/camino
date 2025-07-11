@@ -27,3 +27,28 @@ export function fetchWeather(lat, lon) {
     });
   });
 }
+
+export function fetchCountry (lat, lng) {  
+  return new Promise((resolve, reject) => {
+    $.ajax({
+    url: 'php/getCountryFromCoords.php',
+    method: 'POST',
+    data: { lat, lng },
+    dataType: 'json',
+    success: resolve,
+    error: reject
+    });
+  });
+}
+
+export function fetchCountryList () {  
+  return new Promise((resolve, reject) => {
+    $.ajax({
+    url: 'php/getCountryList.php',
+    method: 'GET',
+    dataType: 'json',
+    success: resolve,
+    error: reject
+    });
+  });
+}

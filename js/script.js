@@ -1,4 +1,4 @@
-import { fetchCityInfo, fetchWeather } from './api.js';
+import { fetchCityInfo, fetchWeather, fetchCountry, fetchCountryList } from './api.js';
 
 
 
@@ -29,24 +29,18 @@ navigator.geolocation.getCurrentPosition(
     map.setView([lat, lng], 6);
 
     // Call PHP to convert lat/lng → country code
-    $.ajax({
-      url: 'php/getCountryFromCoords.php',
-      method: 'POST',
-      data: { lat: lat, lng: lng },
-      dataType: 'json',
-      success: function (response) {
-        const countryCode = response.countryCode;
-        
+    fetchCountry(lat, lng)
+      .then(function (response) {
+            const countryCode = response.countryCode;
+            
 
-        // Set dropdown value and trigger change event
-        $('#countryDropdown').val(countryCode).trigger('change');
+            // Set dropdown value and trigger change event
+            $('#countryDropdown').val(countryCode).trigger('change');
+            
+            fetchCities(countryCode);
+          })
+      .catch(err => console.error('Could not determine country from location:', err));
         
-        fetchCities(countryCode);
-      },
-      error: function (xhr, status, err) {
-        console.error('Could not determine country from location:', err);
-      }
-    });
   },
   function (error) {
     console.error('Geolocation error:', error);
@@ -58,26 +52,20 @@ navigator.geolocation.getCurrentPosition(
 
     map.setView([lat, lng], 6);
 
-    $.ajax({
-      url: 'php/getCountryFromCoords.php',
-      method: 'POST',
-      data: { lat: lat, lng: lng },
-      dataType: 'json',
-      success: function (response) {
-        const countryCode = response.countryCode;
-        
+  fetchCountry(lat, lng)
+    .then(function (response) {
+          const countryCode = response.countryCode;
+          
 
-        // Set dropdown value and trigger change event
-        $('#countryDropdown').val(countryCode).trigger('change');
-
-        fetchCities(countryCode);
-
-      },
-      error: function (xhr, status, err) {
-        console.error('Could not determine country from fallback coords:', err);
-      }
-    });
+          // Set dropdown value and trigger change event
+          $('#countryDropdown').val(countryCode).trigger('change');
+          
+          fetchCities(countryCode);
+        })
+    .catch(err => console.error('Could not determine country from location:', err));
+      
   }
+
 );
 
 // Hide loader after map is fully ready 
@@ -96,22 +84,18 @@ map.whenReady(() => {
 const dropdown = document.getElementById('countryDropdown');
 
 // 2. Ask the server for the country list 
-$.ajax({
-  url: 'php/getCountryList.php',
-  method: 'GET',
-  dataType: 'json',
-  success: function (list) {
+fetchCountryList()
+  .then(function (list) {
     list.forEach(function ({ code, name }) {
       const option = document.createElement('option');
       option.value = code;
       option.textContent = name;
       $('#countryDropdown').append(option);
     });
-  },
-  error: function (xhr, status, err) {
-    console.error('Could not load countries:', err);
-  }
-});
+  })
+
+  .catch(err => console.error('Could not load countries:', err));
+ 
 
 
 // ------------ Change map when the selected country changes 
