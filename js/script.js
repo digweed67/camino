@@ -176,6 +176,7 @@ $.ajax({
       
     });
   map.addLayer(clusters)
+  map.fitBounds(clusters.getBounds());
   cityClusterLayer = clusters;
   },
   error: function (xhr, status, err) {
@@ -231,6 +232,6 @@ function loadCityInfo({ lat, lng, name }) {
   });
 
    
-}  // ← this was missing
+}  
 
 }); //DOM closing tags 
