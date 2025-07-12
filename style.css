@@ -89,6 +89,10 @@ body, select, button, .leaflet-control, .modal, .footer {
   font-weight: 500;
 }
 
+#cityModalBody {
+  padding-top: 0; 
+}
+
 /* Weather section styles */
 .weather {
   display: flex;

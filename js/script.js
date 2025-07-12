@@ -166,6 +166,7 @@ function loadCityInfo({ lat, lng, name }) {
   // Show loading modal
   $('#cityModalLabel').text(`Loading ${name}…`);
   $('#cityModalBody').html('<em>Fetching data…</em>');
+  
   cityModal.show();
 
   const cityInfoPromise = fetchCityInfo(lat, lng);
@@ -208,7 +209,6 @@ function loadCityInfo({ lat, lng, name }) {
       }
 
       const generalHTML = `
-        <hr>
         <div class="general-info">
           <ul class="list-unstyled mb-2">
             <li><strong>🌍 Country Code:</strong> ${cityData.code}</li>
@@ -244,6 +244,10 @@ function loadCityInfo({ lat, lng, name }) {
             <hr>
             <div class="wikipedia">
               <strong>📚 Wikipedia:</strong>
+              <button class="btn btn-sm btn-link p-0 ms-1" data-bs-toggle="collapse" data-bs-target="#wikiContent" aria-expanded="false" aria-controls="wikiContent">
+                Show summary
+              </button>
+              <div class="collapse mt-2" id="wikiContent">
               <p>${wikiData.summary}</p>
               <a href="https://en.wikipedia.org/wiki/${encodeURIComponent(name)}" target="_blank">Read more</a>
             </div>
