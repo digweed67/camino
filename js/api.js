@@ -92,3 +92,17 @@ export function fetchWikipedia(name) {
     });
   });
 }
+
+
+export function fetchCountryDetails(code) {
+  return new Promise((resolve, reject) => {
+    $.ajax({
+      url: 'php/getCountryDetails.php',
+      method: 'POST',
+      data: { code },
+      dataType: 'json',
+      success: resolve,
+      error: reject
+    });
+  });
+}

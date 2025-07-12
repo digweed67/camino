@@ -1,4 +1,4 @@
-import { fetchCityInfo, fetchWeather, fetchCountry, fetchCountryList, fetchCountryBorder, fetchCities, fetchWikipedia } from './api.js';
+import { fetchCityInfo, fetchWeather, fetchCountry, fetchCountryList, fetchCountryBorder, fetchCities, fetchWikipedia, fetchCountryDetails } from './api.js';
 
 
 
@@ -163,68 +163,102 @@ function getCities(countryCode){
 // ------------ Open a modal with the city info and weather info
 
 function loadCityInfo({ lat, lng, name }) {
-  // Show modal immediately with a placeholder
+  // Show loading modal
   $('#cityModalLabel').text(`Loading ${name}…`);
   $('#cityModalBody').html('<em>Fetching data…</em>');
   cityModal.show();
 
-  // Start all fetches
   const cityInfoPromise = fetchCityInfo(lat, lng);
-  const weatherPromise = fetchWeather(lat, lng);
-  const wikiPromise = fetchWikipedia(name);
 
-  Promise.all([cityInfoPromise, weatherPromise, wikiPromise])
-    .then(function ([cityData, weatherData, wikiData]) {
+  cityInfoPromise
+    .then(cityData => {
       if (cityData.status === 'error') {
         $('#cityModalBody').html(`<strong>${cityData.message}</strong>`);
         return;
       }
 
-      // Set modal title
+      return Promise.all([
+        Promise.resolve(cityData),
+        fetchWeather(lat, lng),
+        fetchWikipedia(name),
+        fetchCountryDetails(cityData.code)
+      ]);
+    })
+    .then(([cityData, weatherData, wikiData, countryData]) => {
+      if (!cityData) return;
+
       $('#cityModalLabel').text(cityData.name);
 
-      // Build City Info
-      let cityHTML = `
-        <ul class="list-unstyled mb-2">
-          <li><strong>Country Code:</strong> ${cityData.code}</li>
-          <li><strong>Population:</strong> ${Number(cityData.population).toLocaleString()}</li>
-        </ul>
+      // --- General Info ---
+      let currencyHTML = '';
+      let languageHTML = '';
+
+      if (countryData.status === 'success') {
+        const details = countryData.data;
+
+        if (details.currencies) {
+          const currency = Object.values(details.currencies)[0];
+          currencyHTML = `<li><strong>💶 Currency:</strong> ${currency.name} (${currency.symbol})</li>`;
+        }
+
+        if (details.languages) {
+          const languages = Object.values(details.languages).join(', ');
+          languageHTML = `<li><strong>💬 Language(s):</strong> ${languages}</li>`;
+        }
+      }
+
+      const generalHTML = `
+        <hr>
+        <div class="general-info">
+          <ul class="list-unstyled mb-2">
+            <li><strong>🌍 Country Code:</strong> ${cityData.code}</li>
+            <li><strong>👥 Population:</strong> ${Number(cityData.population).toLocaleString()}</li>
+            ${languageHTML}
+            ${currencyHTML}
+          </ul>
+        </div>
       `;
 
-      // Build Weather Info
-      let weatherHTML =
+      // --- Weather ---
+      const weatherHTML =
         weatherData.status === 'ok'
           ? `
             <hr>
             <div class="weather">
-              <img src="https://openweathermap.org/img/wn/${weatherData.icon}@2x.png" alt="weather icon">
-              <div><strong>${(+weatherData.temp).toFixed(1)} °C</strong></div>
-              <div>${weatherData.weather}</div>
+              <strong>Weather:</strong>
+              <div class="d-flex align-items-center gap-2 mt-1">
+                <img src="https://openweathermap.org/img/wn/${weatherData.icon}@2x.png" alt="weather icon">
+                <div>
+                  <div><strong>${(+weatherData.temp).toFixed(1)} °C</strong></div>
+                  <div>${weatherData.weather}</div>
+                </div>
+              </div>
             </div>
           `
-          : '<p><em>Weather unavailable.</em></p>';
+          : '<hr><p><em>🌦 Weather unavailable.</em></p>';
 
-      // Build Wikipedia Info
-      let wikiHTML =
+      // --- Wikipedia ---
+      const wikiHTML =
         wikiData.status === 'ok'
           ? `
             <hr>
             <div class="wikipedia">
-              <strong>Wikipedia:</strong>
+              <strong>📚 Wikipedia:</strong>
               <p>${wikiData.summary}</p>
               <a href="https://en.wikipedia.org/wiki/${encodeURIComponent(name)}" target="_blank">Read more</a>
             </div>
           `
-          : '<p><em>No Wikipedia summary available.</em></p>';
+          : '<hr><p><em>📚 No Wikipedia summary available.</em></p>';
 
-      // Update modal once all content is ready
-      $('#cityModalBody').html(cityHTML + weatherHTML + wikiHTML);
+      // --- Final render ---
+      $('#cityModalBody').html(generalHTML + weatherHTML + wikiHTML);
     })
-    .catch(function (err) {
-      console.error('Error loading city data:', err);
+    .catch(err => {
+      console.error('Error loading data:', err);
       $('#cityModalBody').html('<strong>Error loading data. Please try again.</strong>');
     });
 }
+
   
 
 }); //DOM closing tags 
