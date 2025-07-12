@@ -168,15 +168,22 @@ function loadCityInfo({ lat, lng, name }) {
   $('#cityModalBody').html('<em>Fetching data…</em>');
   cityModal.show();
 
-  fetchCityInfo(lat, lng).then(function(cityData) {
-    
+  // Start all fetches
+  const cityInfoPromise = fetchCityInfo(lat, lng);
+  const weatherPromise = fetchWeather(lat, lng);
+  const wikiPromise = fetchWikipedia(name);
+
+  Promise.all([cityInfoPromise, weatherPromise, wikiPromise])
+    .then(function ([cityData, weatherData, wikiData]) {
       if (cityData.status === 'error') {
         $('#cityModalBody').html(`<strong>${cityData.message}</strong>`);
         return;
-      } 
+      }
 
+      // Set modal title
       $('#cityModalLabel').text(cityData.name);
-      
+
+      // Build City Info
       let cityHTML = `
         <ul class="list-unstyled mb-2">
           <li><strong>Country Code:</strong> ${cityData.code}</li>
@@ -184,49 +191,40 @@ function loadCityInfo({ lat, lng, name }) {
         </ul>
       `;
 
-      fetchWeather(lat, lng).then(function(weatherData) {
-        let weatherHTML =
-            weatherData.status === 'ok'
-              ? `
-                <hr>
-                <div class="weather">
-                  <img src="https://openweathermap.org/img/wn/${weatherData.icon}@2x.png" alt="weather icon">
-                  <div><strong>${(+weatherData.temp).toFixed(1)} °C</strong></div>
-                  <div>${weatherData.weather}</div>
-                </div>
-              `
-              : '<p><em>Weather unavailable.</em></p>';
+      // Build Weather Info
+      let weatherHTML =
+        weatherData.status === 'ok'
+          ? `
+            <hr>
+            <div class="weather">
+              <img src="https://openweathermap.org/img/wn/${weatherData.icon}@2x.png" alt="weather icon">
+              <div><strong>${(+weatherData.temp).toFixed(1)} °C</strong></div>
+              <div>${weatherData.weather}</div>
+            </div>
+          `
+          : '<p><em>Weather unavailable.</em></p>';
 
-          $('#cityModalBody').html(cityHTML + weatherHTML);
-      }).catch(function () {
-        $('#cityModalBody').html(cityHTML + '<p><em>Weather unavailable.</em></p>');
-      });
+      // Build Wikipedia Info
+      let wikiHTML =
+        wikiData.status === 'ok'
+          ? `
+            <hr>
+            <div class="wikipedia">
+              <strong>Wikipedia:</strong>
+              <p>${wikiData.summary}</p>
+              <a href="https://en.wikipedia.org/wiki/${encodeURIComponent(name)}" target="_blank">Read more</a>
+            </div>
+          `
+          : '<p><em>No Wikipedia summary available.</em></p>';
 
-        fetchWikipedia(name)
-          .then(function(wikiData) {
-            if (wikiData.status === 'ok') {
-              const wikiHTML = `
-                <hr>
-                <div class="wikipedia">
-                  <strong>Wikipedia:</strong>
-                  <p>${wikiData.summary}</p>
-                  <a href="https://en.wikipedia.org/wiki/${encodeURIComponent(name)}" target="_blank">Read more</a>
-                </div>
-              `;
-              $('#cityModalBody').append(wikiHTML);
-            } else {
-              $('#cityModalBody').append('<p><em>No Wikipedia summary available.</em></p>');
-            }
-          })
-          .catch(() => {
-            $('#cityModalBody').append('<p><em>Wikipedia info unavailable.</em></p>');
-          });
-
-  }).catch(function () {
-    $('#cityModalBody').html('<strong>Server error—try again.</strong>');
-  });
-
-   
-}  
+      // Update modal once all content is ready
+      $('#cityModalBody').html(cityHTML + weatherHTML + wikiHTML);
+    })
+    .catch(function (err) {
+      console.error('Error loading city data:', err);
+      $('#cityModalBody').html('<strong>Error loading data. Please try again.</strong>');
+    });
+}
+  
 
 }); //DOM closing tags 
